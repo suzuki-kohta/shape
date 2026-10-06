@@ -1060,6 +1060,10 @@ body.theme-dark .axis-z { color: #60a5fa; }
 }
 
 /* Parametric Surface UI */
+.parametric-preset-group {
+  margin-bottom: 8px;
+}
+
 .parametric-inputs-compact {
   display: flex;
   flex-direction: column;

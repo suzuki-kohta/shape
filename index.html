@@ -53,7 +53,7 @@
 
       <!-- Parametric Surface Section ((x, y, z) = f(u, v)) -->
       <div id="parametric-formula-section" style="display: none;">
-        <div class="form-group">
+        <div class="form-group parametric-preset-group">
           <label for="parametric-preset">媒介変数プリセット:</label>
           <select id="parametric-preset">
             <option value="custom">-- 方程式を直接入力 --</option>
@@ -62,7 +62,7 @@
             <option value="klein">クラインの壺 (Klein Bottle)</option>
             <option value="helix">螺旋曲面 (Helix Surface)</option>
             <option value="lissajous">リサージュ立体 (Lissajous)</option>
-            <option value="sphere">リップル球 (Ripple Sphere)</option>
+            <option value="sphere">球体 (Sphere)</option>
           </select>
         </div>
 
@@ -212,20 +212,20 @@
           <div class="ios-setting-row-vertical">
             <div class="label-row">
               <label for="rot-z-slider" class="ios-row-label">水平回転 (Z軸)</label>
-              <span id="rot-z-val" class="ios-value-badge">0°</span>
+              <span id="rot-z-val" class="ios-value-badge">0 rad</span>
             </div>
             <div class="range-slider-row">
-              <input type="range" id="rot-z-slider" min="0" max="360" step="1" value="0">
+              <input type="range" id="rot-z-slider" min="0" max="6.283185307179586" step="0.01" value="0">
             </div>
           </div>
 
           <div class="ios-setting-row-vertical">
             <div class="label-row">
               <label for="rot-vertical-slider" class="ios-row-label">縦方向回転 (チルト)</label>
-              <span id="rot-vertical-val" class="ios-value-badge">0°</span>
+              <span id="rot-vertical-val" class="ios-value-badge">0 rad</span>
             </div>
             <div class="range-slider-row">
-              <input type="range" id="rot-vertical-slider" min="-180" max="180" step="1" value="0">
+              <input type="range" id="rot-vertical-slider" min="0" max="6.283185307179586" step="0.01" value="0">
             </div>
           </div>
 

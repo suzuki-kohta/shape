@@ -21,6 +21,8 @@
   // Object Rotation State (図形自体の回転)
   let objectRotZ = 0;        // In radians (horizontal)
   let objectRotVertical = 0; // In radians (vertical / X-tilt)
+  const TWO_PI = Math.PI * 2;
+  let previousFrameTime = null;
   let spinAxis = 'z';        // 'z' | 'vertical' | 'both'
 
   // Theme & Interaction State
@@ -157,11 +159,11 @@
       vMin: "-pi", vMax: "pi"
     },
     sphere: {
-      name: "リップル球",
-      x: "(3.5 + 0.4 * sin(4 * u) * cos(4 * v)) * sin(u) * cos(v)",
-      y: "(3.5 + 0.4 * sin(4 * u) * cos(4 * v)) * sin(u) * sin(v)",
-      z: "(3.5 + 0.4 * sin(4 * u) * cos(4 * v)) * cos(u)",
-      uMin: "0.01", uMax: "pi - 0.01",
+      name: "球体",
+      x: "4 * sin(u) * cos(v)",
+      y: "4 * sin(u) * sin(v)",
+      z: "4 * cos(u)",
+      uMin: "0", uMax: "pi",
       vMin: "0", vMax: "2 * pi"
     }
   };
@@ -2043,7 +2045,8 @@
 
     if (rotZSlider) {
       rotZSlider.addEventListener('input', (e) => {
-        objectRotZ = (parseFloat(e.target.value) * Math.PI) / 180;
+        objectRotZ = rotationFromSlider(e.target.value);
+        if (objectRotZ === 0) e.target.value = 0;
         applyObjectRotation(false);
         saveState();
       });
@@ -2051,7 +2054,8 @@
 
     if (rotVerticalSlider) {
       rotVerticalSlider.addEventListener('input', (e) => {
-        objectRotVertical = (parseFloat(e.target.value) * Math.PI) / 180;
+        objectRotVertical = rotationFromSlider(e.target.value);
+        if (objectRotVertical === 0) e.target.value = 0;
         applyObjectRotation(false);
         saveState();
       });
@@ -2138,25 +2142,36 @@
 
   // --- Object Rotation & Mirror Application ---
   function applyObjectRotation(updateInputs = true) {
+    objectRotZ = normalizeRotation(objectRotZ);
+    objectRotVertical = normalizeRotation(objectRotVertical);
     if (rootGroup) {
       rootGroup.rotation.z = objectRotZ;
       rootGroup.rotation.x = objectRotVertical;
     }
-    const degZ = Math.round(((objectRotZ * 180 / Math.PI) % 360 + 360) % 360);
-    const degVert = Math.round(objectRotVertical * 180 / Math.PI);
+    const radZ = Number(objectRotZ.toFixed(2));
+    const radVert = Number(objectRotVertical.toFixed(2));
 
     const sliderZ = document.getElementById('rot-z-slider');
     const valZ = document.getElementById('rot-z-val');
     const sliderVert = document.getElementById('rot-vertical-slider');
     const valVert = document.getElementById('rot-vertical-val');
 
-    if (valZ) valZ.textContent = `${degZ}°`;
-    if (valVert) valVert.textContent = `${degVert}°`;
+    if (valZ) valZ.textContent = `${radZ.toFixed(2)} rad`;
+    if (valVert) valVert.textContent = `${radVert.toFixed(2)} rad`;
 
     if (updateInputs) {
-      if (sliderZ && document.activeElement !== sliderZ) sliderZ.value = degZ;
-      if (sliderVert && document.activeElement !== sliderVert) sliderVert.value = degVert;
+      if (sliderZ && document.activeElement !== sliderZ) sliderZ.value = objectRotZ;
+      if (sliderVert && document.activeElement !== sliderVert) sliderVert.value = objectRotVertical;
     }
+  }
+
+  function normalizeRotation(angle) {
+    return ((angle % TWO_PI) + TWO_PI) % TWO_PI;
+  }
+
+  function rotationFromSlider(value) {
+    const angle = parseFloat(value);
+    return angle >= TWO_PI - 1e-6 ? 0 : normalizeRotation(angle);
   }
 
   function applyMirror() {
@@ -2563,6 +2578,9 @@
     // Completely pause rendering when document is hidden (background / minimized)
     if (document.hidden) return;
 
+    const now = performance.now();
+    const deltaSeconds = previousFrameTime === null ? 0 : Math.min((now - previousFrameTime) / 1000, 0.05);
+    previousFrameTime = now;
     let shouldRender = !displaySettings.eco || autoSpin || renderFramesRemaining > 0;
 
     if (controls.enabled) {
@@ -2576,10 +2594,10 @@
     if (autoSpin) {
       const speed = autoSpinSpeed || 1.0;
       if (spinAxis === 'z' || spinAxis === 'both') {
-        objectRotZ += 0.003 * speed;
+        objectRotZ = normalizeRotation(objectRotZ + 0.18 * speed * deltaSeconds);
       }
       if (spinAxis === 'vertical' || spinAxis === 'both') {
-        objectRotVertical += 0.002 * speed;
+        objectRotVertical = normalizeRotation(objectRotVertical + 0.12 * speed * deltaSeconds);
       }
       applyObjectRotation(true);
       shouldRender = true;
