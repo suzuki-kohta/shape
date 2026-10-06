@@ -8,7 +8,7 @@
   <script src="lib/three.min.js"></script>
   <script src="lib/OrbitControls.js"></script>
   <script src="lib/math.min.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-YsMWg0_k.css">
+  <link rel="stylesheet" crossorigin href="./assets/index-rdi6LDsi.css">
 </head>
 <body>
   <!-- 3D WebGL Canvas Container -->
@@ -604,6 +604,12 @@
         </svg>
         <span class="spin-label">自転</span>
       </button>
+    </div>
+    <div class="draw-options" aria-label="点プロット設定">
+      <label class="draw-option-toggle"><span>点を線でつなぐ</span><button id="toggle-connect-points" class="ios-inline-switch active" type="button" role="switch" aria-checked="true" aria-label="点を線でつなぐ"><span class="switch-knob"></span></button></label>
+      <label class="draw-option-toggle"><span>面を塗りつぶす（4点以上）</span><button id="toggle-fill-polygon" class="ios-inline-switch" type="button" role="switch" aria-checked="false" aria-label="面を塗りつぶす"><span class="switch-knob"></span></button></label>
+      <label class="draw-option-range" for="line-width"><span>線の太さ <output id="line-width-value">2</output></span><input id="line-width" type="range" min="1" max="8" step="1" value="2"></label>
+      <label class="draw-option-range" for="point-size"><span>点のサイズ <output id="point-size-value">0.24</output></span><input id="point-size" type="range" min="0.10" max="0.60" step="0.02" value="0.24"></label>
     </div>
   </div>
 

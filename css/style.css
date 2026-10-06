@@ -816,6 +816,31 @@ body.ui-hidden #btn-toggle-ui:hover {
   border-radius: 16px;
 }
 
+.draw-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 12px;
+  padding: 9px 10px 2px;
+  border-top: 1px solid var(--divider);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.draw-option-toggle,
+.draw-option-range {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.draw-option-toggle span,
+.draw-option-range span { line-height: 1.25; }
+.draw-option-range { flex-direction: column; align-items: stretch; }
+.draw-option-range span { display: flex; justify-content: space-between; }
+.draw-option-range input { width: 100%; margin: 3px 0 0; accent-color: #0284c7; }
+
 /* iOS Segmented Control */
 .ios-segmented-control {
   display: flex;
@@ -1249,4 +1274,3 @@ body.theme-dark #btn-loop-points.active {
 body.theme-dark .light-preset-btn.active {
   border-color: rgba(56, 189, 248, 0.4);
 }
-
