@@ -1,0 +1,1252 @@
+/* Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+/* CSS Variables: Default = Light Mode (白基調) */
+:root {
+  --bg-color: #f8fafc;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --panel-bg: rgba(255, 255, 255, 0.85);
+  --panel-border: rgba(0, 0, 0, 0.08);
+  --panel-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  --input-bg: rgba(241, 245, 249, 0.95);
+  --input-border: rgba(203, 213, 225, 0.9);
+  --input-text: #0f172a;
+  --input-focus-border: #0284c7;
+  --btn-secondary-bg: rgba(226, 232, 240, 0.85);
+  --btn-secondary-hover: rgba(203, 213, 225, 0.95);
+  --btn-secondary-text: #334155;
+  --btn-secondary-text-hover: #0f172a;
+  --mode-group-bg: rgba(241, 245, 249, 0.95);
+  --mode-btn-text: #64748b;
+  --action-btn-bg: rgba(255, 255, 255, 0.8);
+  --action-btn-border: rgba(0, 0, 0, 0.08);
+  --action-btn-text: #475569;
+  --action-btn-hover: #ffffff;
+  --action-btn-hover-text: #0f172a;
+  --divider: rgba(0, 0, 0, 0.1);
+  --coord-text: #0284c7;
+  --icon-btn-bg: rgba(255, 255, 255, 0.8);
+  --icon-btn-hover: #ffffff;
+  --icon-btn-text: #334155;
+  --icon-btn-border: rgba(0, 0, 0, 0.08);
+  --segmented-bg: rgba(0, 0, 0, 0.06);
+  --segmented-active-bg: #ffffff;
+  --segmented-active-text: #0f172a;
+  --segmented-active-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Dark Mode Theme */
+body.theme-dark {
+  --bg-color: #080a10;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --panel-bg: rgba(15, 23, 42, 0.78);
+  --panel-border: rgba(255, 255, 255, 0.12);
+  --panel-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --input-bg: rgba(30, 41, 59, 0.8);
+  --input-border: rgba(255, 255, 255, 0.15);
+  --input-text: #f1f5f9;
+  --input-focus-border: #38bdf8;
+  --btn-secondary-bg: rgba(51, 65, 85, 0.8);
+  --btn-secondary-hover: rgba(71, 85, 105, 0.9);
+  --btn-secondary-text: #cbd5e1;
+  --btn-secondary-text-hover: #f8fafc;
+  --mode-group-bg: rgba(30, 41, 59, 0.9);
+  --mode-btn-text: #94a3b8;
+  --action-btn-bg: rgba(30, 41, 59, 0.6);
+  --action-btn-border: rgba(255, 255, 255, 0.08);
+  --action-btn-text: #cbd5e1;
+  --action-btn-hover: rgba(51, 65, 85, 0.8);
+  --action-btn-hover-text: #ffffff;
+  --divider: rgba(255, 255, 255, 0.15);
+  --coord-text: #38bdf8;
+  --icon-btn-bg: rgba(15, 23, 42, 0.7);
+  --icon-btn-hover: rgba(30, 41, 59, 0.9);
+  --icon-btn-text: #cbd5e1;
+  --icon-btn-border: rgba(255, 255, 255, 0.12);
+  --segmented-bg: rgba(255, 255, 255, 0.08);
+  --segmented-active-bg: rgba(255, 255, 255, 0.2);
+  --segmented-active-text: #ffffff;
+  --segmented-active-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* Glassmorphism Panel Common */
+.glass-panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  box-shadow: var(--panel-shadow);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Header & Math Panel (Top-Left) */
+#top-left-panel {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  width: 340px;
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-main);
+}
+
+.app-title .badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.toggle-icon {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.panel-body {
+  padding: 0 14px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+}
+
+.panel-body::-webkit-scrollbar {
+  width: 5px;
+}
+.panel-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.panel-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+.panel-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+.collapsed .panel-body {
+  display: none;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+input[type="text"], select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  color: var(--input-text);
+  font-size: 13px;
+  outline: none;
+  font-family: monospace;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+
+input[type="text"]:focus, select:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.btn-primary {
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  padding: 8px 12px;
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: var(--btn-secondary-hover);
+  color: var(--btn-secondary-text-hover);
+}
+
+/* Range Slider */
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.value-badge {
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--coord-text);
+  background: var(--input-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--panel-border);
+}
+
+.range-slider-row {
+  display: flex;
+  align-items: center;
+  padding-top: 4px;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--input-border);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 2px solid #0284c7;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+body.theme-dark input[type="range"]::-webkit-slider-thumb {
+  background: #0f172a;
+  border-color: #38bdf8;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+}
+
+/* ==========================================================================
+   iOS Card Sections (Color, Rotation, Mirror)
+   ========================================================================== */
+.ios-card-section {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.theme-dark .ios-card-section {
+  background: rgba(30, 41, 59, 0.45);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Card Header */
+.ios-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  cursor: pointer;
+  user-select: none;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.ios-card-header:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+body.theme-dark .ios-card-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ios-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Icon Badges (SF Symbols style) */
+.ios-icon-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.badge-color {
+  background: linear-gradient(135deg, #ec4899, #8b5cf6, #0284c7);
+}
+
+.badge-rotation {
+  background: linear-gradient(135deg, #0284c7, #10b981);
+}
+
+.badge-mirror {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+.badge-display {
+  background: linear-gradient(135deg, #06b6d4, #0284c7);
+}
+
+.badge-light {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+.ios-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: -0.1px;
+}
+
+/* Chevron */
+.ios-chevron {
+  color: var(--text-muted);
+  opacity: 0.7;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.ios-card-header:hover .ios-chevron {
+  opacity: 1;
+}
+
+.color-accordion.collapsed .ios-chevron {
+  transform: rotate(-90deg);
+}
+
+.color-accordion.collapsed .ios-card-body,
+.color-accordion.collapsed .color-accordion-body {
+  display: none;
+}
+
+/* Color Customization Body (Reverted to Original Layout) */
+.color-accordion-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 10px 10px 10px;
+  border-top: 1px solid var(--divider);
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.color-row label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.color-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 1px solid var(--panel-border);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s ease;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
+
+input[type="color"]:hover {
+  transform: scale(1.15);
+}
+
+.color-swatches {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s ease;
+}
+
+.swatch:hover {
+  transform: scale(1.25);
+}
+
+.btn-reset-sub {
+  font-size: 10px;
+  padding: 3px 7px;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-reset-sub:hover {
+  color: var(--text-main);
+  background: var(--btn-secondary-hover);
+}
+
+/* Card Body (for Rotation and Mirror) */
+.ios-card-body {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 10px 10px 10px;
+  border-top: 1px solid var(--divider);
+}
+
+/* iOS Setting Row (Vertical: Slider / Segment) */
+.ios-setting-row-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.ios-setting-row-vertical:last-of-type {
+  border-bottom: none;
+}
+
+.ios-row-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.ios-value-badge {
+  font-size: 11px;
+  font-family: -apple-system, BlinkMacSystemFont, monospace;
+  font-weight: 600;
+  color: var(--coord-text);
+  background: var(--input-bg);
+  padding: 1px 7px;
+  border-radius: 9999px;
+  border: 1px solid var(--panel-border);
+}
+
+/* iOS Card Action Button (Reset / Secondary) */
+.ios-card-action-btn {
+  width: 100%;
+  padding: 6px 10px;
+  margin-top: 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+}
+
+.ios-card-action-btn:hover {
+  color: var(--text-main);
+  background: var(--btn-secondary-hover);
+  border-color: var(--input-border);
+}
+
+.ios-card-action-btn:active {
+  transform: scale(0.98);
+}
+
+/* iOS Card Caption */
+.ios-card-caption {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+  padding: 0 1px;
+}
+
+/* iOS Mirror Button Group */
+.ios-mirror-group {
+  display: flex;
+  gap: 5px;
+  width: 100%;
+}
+
+.ios-mirror-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 6px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ios-mirror-btn svg {
+  opacity: 0.75;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.ios-mirror-btn:hover {
+  background: var(--btn-secondary-hover);
+  color: var(--text-main);
+  border-color: var(--input-border);
+}
+
+.ios-mirror-btn.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+}
+
+.ios-mirror-btn.active svg {
+  opacity: 1;
+  color: #ffffff;
+}
+
+body.theme-dark .ios-mirror-btn.active {
+  background: #38bdf8;
+  border-color: #38bdf8;
+  color: #0f172a;
+  box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
+}
+
+body.theme-dark .ios-mirror-btn.active svg {
+  color: #0f172a;
+}
+
+.ios-mirror-btn:active {
+  transform: scale(0.96);
+}
+
+/* Top-Right Tools (Apple / iOS Style Controls) */
+#top-right-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* iOS Toggle Switch */
+.ios-switch {
+  position: relative;
+  width: 58px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  border-radius: 9999px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-switch-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: rgba(226, 232, 240, 0.88);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 7px;
+  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+}
+
+body.theme-dark .ios-switch-track {
+  background: rgba(30, 41, 59, 0.88);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.ios-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.ios-icon-sun {
+  color: #f59e0b;
+  opacity: 1;
+}
+
+.ios-icon-moon {
+  color: #94a3b8;
+  opacity: 0.5;
+}
+
+body.theme-dark .ios-icon-sun {
+  color: #64748b;
+  opacity: 0.5;
+}
+
+body.theme-dark .ios-icon-moon {
+  color: #38bdf8;
+  opacity: 1;
+}
+
+/* iOS Switch Thumb (Knob) */
+.ios-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.08);
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease;
+}
+
+body.theme-dark .ios-switch-thumb {
+  transform: translateX(26px);
+  background: #f8fafc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.ios-switch:hover .ios-switch-thumb {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22), 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.ios-switch:active .ios-switch-thumb {
+  width: 28px;
+}
+
+/* iOS Style Icon Button (for UI Toggle) */
+.ios-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--panel-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--panel-border);
+  color: var(--text-muted);
+  cursor: pointer;
+  outline: none;
+  box-shadow: var(--panel-shadow);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ios-icon-btn:hover {
+  color: var(--text-main);
+  background: var(--btn-action-hover);
+  transform: scale(1.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ios-icon-btn:active {
+  transform: scale(0.94);
+}
+
+/* Floating UI Hidden State */
+body.ui-hidden .glass-panel,
+body.ui-hidden #top-left-panel,
+body.ui-hidden #bottom-center-info,
+body.ui-hidden #bottom-right-panel,
+body.ui-hidden #axes-legend {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+}
+
+/* Keep the unhide button slightly visible */
+body.ui-hidden #btn-toggle-ui {
+  opacity: 0.4;
+  pointer-events: auto;
+}
+body.ui-hidden #btn-toggle-ui:hover {
+  opacity: 1;
+}
+
+/* Bottom-Right Main Controls (Apple / iOS Style Segmented & Action Controls) */
+#bottom-right-panel {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 16px;
+}
+
+/* iOS Segmented Control */
+.ios-segmented-control {
+  display: flex;
+  background: var(--segmented-bg);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.ios-segment-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.ios-segment-btn svg {
+  opacity: 0.75;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.ios-segment-btn:hover {
+  color: var(--text-main);
+}
+
+.ios-segment-btn.active {
+  background: var(--segmented-active-bg);
+  color: var(--segmented-active-text);
+  box-shadow: var(--segmented-active-shadow);
+}
+
+.ios-segment-btn.active svg {
+  opacity: 1;
+  color: #0284c7;
+}
+body.theme-dark .ios-segment-btn.active svg {
+  color: #38bdf8;
+}
+
+.ios-segment-btn:active {
+  transform: scale(0.97);
+}
+
+/* iOS Action Row */
+.ios-action-row {
+  display: flex;
+  gap: 5px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.ios-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 9px;
+  background: var(--segmented-bg);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.ios-action-btn svg {
+  opacity: 0.7;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.ios-action-btn:hover {
+  background: var(--btn-secondary-hover);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+
+.ios-action-btn:hover svg {
+  opacity: 1;
+}
+
+.ios-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Auto spin active state */
+.ios-action-btn.active {
+  background: rgba(2, 132, 199, 0.12);
+  border-color: rgba(2, 132, 199, 0.3);
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.ios-action-btn.active svg {
+  opacity: 1;
+  color: #0284c7;
+}
+
+body.theme-dark .ios-action-btn.active {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+body.theme-dark .ios-action-btn.active svg {
+  color: #38bdf8;
+}
+
+/* Bottom-Center Info / Status Bar (Dynamic Island Style) */
+#bottom-center-info {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.coord-display {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--coord-text);
+}
+
+.hint-text {
+  border-left: 1px solid var(--divider);
+  padding-left: 12px;
+  color: var(--text-main);
+}
+
+/* Axes Guide Marker (Bottom-Left: Minimal Color Chip + Letter) */
+#axes-legend {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 10;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.axis-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.axis-badge {
+  font-size: 9px;
+  line-height: 1;
+}
+
+.axis-name {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.axis-x { color: #ef4444; }
+.axis-y { color: #10b981; }
+.axis-z { color: #2563eb; }
+body.theme-dark .axis-x { color: #f87171; }
+body.theme-dark .axis-y { color: #34d399; }
+body.theme-dark .axis-z { color: #60a5fa; }
+
+.legend-center-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--segmented-bg);
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  margin-left: 2px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.legend-center-btn:hover {
+  color: var(--text-main);
+  background: var(--btn-secondary-hover);
+  transform: scale(1.15);
+}
+
+.legend-center-btn:active {
+  transform: scale(0.92);
+}
+
+/* Parametric Surface UI */
+.parametric-inputs-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.param-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.param-row label {
+  width: 52px;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.param-row input {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-text);
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.param-row input:focus {
+  border-color: var(--input-focus-border);
+}
+
+.param-range-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: var(--segmented-bg);
+  border-radius: 8px;
+}
+
+.range-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.range-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.range-inputs input {
+  width: 100%;
+  padding: 3px 6px;
+  font-size: 11px;
+  border-radius: 4px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-text);
+  text-align: center;
+  font-family: monospace;
+  outline: none;
+}
+
+.range-inputs span {
+  font-size: 10px;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+/* Display & Eco Mode Settings Card */
+.display-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.display-toggle-row:last-child {
+  border-bottom: none;
+  padding-bottom: 2px;
+}
+
+.label-with-desc {
+  display: flex;
+  flex-direction: column;
+}
+
+.sub-label-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  line-height: 1.2;
+}
+
+/* iOS Inline Switch */
+.ios-inline-switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(148, 163, 184, 0.4);
+  cursor: pointer;
+  outline: none;
+  padding: 2px;
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+body.theme-dark .ios-inline-switch {
+  background: rgba(71, 85, 105, 0.6);
+}
+
+.ios-inline-switch.active {
+  background: #10b981;
+}
+
+.ios-inline-switch .switch-knob {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ios-inline-switch.active .switch-knob {
+  transform: translateX(16px);
+}
+
+/* Loop button active indicator */
+#btn-loop-points.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+body.theme-dark #btn-loop-points.active {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+/* Light Controls Container (Disabled vs Active) */
+.light-controls-disabled {
+  opacity: 0.42;
+  pointer-events: none;
+  filter: grayscale(0.2);
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), filter 0.28s ease;
+}
+
+.light-controls-active {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  filter: none !important;
+}
+
+/* Light Presets 2x2 Grid Layout */
+.light-preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  width: 100%;
+}
+
+.light-preset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 4px;
+  background: var(--segmented-bg);
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 7px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.light-preset-btn:hover {
+  color: var(--text-main);
+  background: var(--btn-secondary-hover);
+}
+
+.light-preset-btn.active {
+  background: var(--segmented-active-bg);
+  color: var(--segmented-active-text);
+  box-shadow: var(--segmented-active-shadow);
+  border-color: rgba(2, 132, 199, 0.4);
+}
+
+body.theme-dark .light-preset-btn.active {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+

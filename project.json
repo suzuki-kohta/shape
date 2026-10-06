@@ -1,0 +1,68 @@
+{
+  "contentrating": "Everyone",
+  "description": "Interactive 3D Wallpaper with mathematical surface plot and sketch capabilities. Supports OrbitControls, XYZ axes, parametric surfaces, and point-and-line drawing.",
+  "file": "index.html",
+  "general": {
+    "properties": {
+      "schemecolor": {
+        "order": 0,
+        "text": "立体図形カラー (Scheme Color)",
+        "type": "color",
+        "value": "0.01 0.52 0.78"
+      },
+      "theme": {
+        "order": 1,
+        "text": "テーマ (Theme)",
+        "type": "combo",
+        "value": "light",
+        "options": [
+          { "label": "ライト (Light / 白基調)", "value": "light" },
+          { "label": "ダーク (Dark)", "value": "dark" }
+        ]
+      },
+      "autospin": {
+        "order": 2,
+        "text": "自転アニメーション (Auto Spin)",
+        "type": "bool",
+        "value": false
+      },
+      "spinspeed": {
+        "order": 3,
+        "text": "自転速度倍率 (Spin Speed)",
+        "type": "slider",
+        "min": 0.2,
+        "max": 3.0,
+        "step": 0.1,
+        "value": 1.0
+      },
+      "showgrid": {
+        "order": 4,
+        "text": "床面グリッド表示 (Show Grid)",
+        "type": "bool",
+        "value": true
+      },
+      "showaxes": {
+        "order": 5,
+        "text": "XYZ 軸表示 (Show Axes)",
+        "type": "bool",
+        "value": true
+      },
+      "ecomode": {
+        "order": 6,
+        "text": "省電力スリープレンダリング (Eco Mode)",
+        "type": "bool",
+        "value": true
+      },
+      "customlight": {
+        "order": 7,
+        "text": "光源位置カスタム調整 (Custom Light)",
+        "type": "bool",
+        "value": false
+      }
+    }
+  },
+  "preview": "preview.png",
+  "title": "Interactive 3D Math & Sketch Wallpaper",
+  "type": "web",
+  "version": 1
+}

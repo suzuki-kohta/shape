@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive 3D Wallpaper</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Libraries (Fallback to CDN if local files fail) -->
+  <script src="lib/three.min.js"></script>
+  <script src="lib/OrbitControls.js"></script>
+  <script src="lib/math.min.js"></script>
+</head>
+<body>
+  <!-- 3D WebGL Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Top-Left: Math Formula & Generation Panel -->
+  <div id="top-left-panel" class="glass-panel">
+    <div class="panel-header" id="panel-toggle">
+      <div class="app-title">
+        <span>3D Space</span>
+        <span class="badge">Math &amp; Sketch</span>
+      </div>
+      <span class="toggle-icon">▼</span>
+    </div>
+    <div class="panel-body">
+      <!-- Formula Type Switcher (Explicit z=f(x,y) vs Parametric (u,v)) -->
+      <div class="ios-segmented-control formula-type-switch" style="margin-bottom: 8px;">
+        <button id="btn-type-explicit" class="pill-btn ios-segment-btn active" type="button" title="明示関数 z = f(x, y)">関数 z=f(x,y)</button>
+        <button id="btn-type-parametric" class="pill-btn ios-segment-btn" type="button" title="媒介変数曲面 (u, v)">媒介変数 (u, v)</button>
+      </div>
+
+      <!-- Explicit Function Section (z = f(x, y)) -->
+      <div id="explicit-formula-section">
+        <div class="form-group">
+          <label for="math-preset">幾何学プリセット:</label>
+          <select id="math-preset">
+            <option value="custom">-- 数式を直接入力 --</option>
+            <option value="ripple" selected>波紋 (Ripples): sin(r) / (r+0.5)</option>
+            <option value="saddle">鞍点面 (Saddle): x^2 - y^2</option>
+            <option value="hills">波状丘陵 (Waves): cos(x) * sin(y)</option>
+            <option value="sombrero">ソンブレロ (Bessel): sin(r)</option>
+            <option value="paraboloid">楕円放物面: (x^2 + y^2) / 8</option>
+            <option value="eggcarton">エッグカートン: sin(x) + sin(y)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="formula-input">数式 $z = f(x, y)$:</label>
+          <input type="text" id="formula-input" value="sin(sqrt(x^2 + y^2)) * 1.5" spellcheck="false" placeholder="例: sin(x) * cos(y)">
+        </div>
+      </div>
+
+      <!-- Parametric Surface Section ((x, y, z) = f(u, v)) -->
+      <div id="parametric-formula-section" style="display: none;">
+        <div class="form-group">
+          <label for="parametric-preset">媒介変数プリセット:</label>
+          <select id="parametric-preset">
+            <option value="custom">-- 方程式を直接入力 --</option>
+            <option value="torus" selected>トーラス (Torus / ドーナツ)</option>
+            <option value="mobius">メビウスの帯 (Möbius Strip)</option>
+            <option value="klein">クラインの壺 (Klein Bottle)</option>
+            <option value="helix">螺旋曲面 (Helix Surface)</option>
+            <option value="lissajous">リサージュ立体 (Lissajous)</option>
+            <option value="sphere">リップル球 (Ripple Sphere)</option>
+          </select>
+        </div>
+
+        <div class="form-group parametric-inputs-compact">
+          <div class="param-row">
+            <label for="param-x">x(u, v):</label>
+            <input type="text" id="param-x" value="(4 + 1.2 * cos(v)) * cos(u)" spellcheck="false">
+          </div>
+          <div class="param-row">
+            <label for="param-y">y(u, v):</label>
+            <input type="text" id="param-y" value="(4 + 1.2 * cos(v)) * sin(u)" spellcheck="false">
+          </div>
+          <div class="param-row">
+            <label for="param-z">z(u, v):</label>
+            <input type="text" id="param-z" value="1.2 * sin(v)" spellcheck="false">
+          </div>
+        </div>
+
+        <div class="param-range-grid">
+          <div class="range-field">
+            <label>u 範囲:</label>
+            <div class="range-inputs">
+              <input type="text" id="param-u-min" value="0" placeholder="min">
+              <span>〜</span>
+              <input type="text" id="param-u-max" value="2*pi" placeholder="max">
+            </div>
+          </div>
+          <div class="range-field">
+            <label>v 範囲:</label>
+            <div class="range-inputs">
+              <input type="text" id="param-v-min" value="0" placeholder="min">
+              <span>〜</span>
+              <input type="text" id="param-v-max" value="2*pi" placeholder="max">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="input-row">
+        <button id="btn-generate-mesh" class="btn-primary" style="flex: 2;">立体を生成</button>
+        <button id="btn-clear-mesh" class="btn-secondary" style="flex: 1;">立体を消去</button>
+      </div>
+
+      <!-- Mesh Style Options -->
+      <div class="form-group" style="margin-top: 4px;">
+        <label>描画スタイル:</label>
+        <div class="input-row">
+          <select id="mesh-style">
+            <option value="wireframe">ワイヤーフレーム (Wireframe)</option>
+            <option value="surface">グラデーション曲面 (Solid)</option>
+            <option value="both" selected>ハイブリッド (Solid + Wire)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Plot Range Setting -->
+      <div class="form-group" style="margin-top: 4px;">
+        <div class="label-row" style="display: flex; justify-content: space-between; align-items: center;">
+          <label for="range-slider">描画範囲 (XY):</label>
+          <span id="range-val" class="value-badge">±6.0</span>
+        </div>
+        <div class="range-slider-row">
+          <input type="range" id="range-slider" min="2" max="15" step="0.5" value="6">
+        </div>
+      </div>
+
+      <!-- iOS Card Section: Color Customization -->
+      <div class="color-accordion ios-card-section">
+        <div class="color-accordion-header ios-card-header" id="color-toggle">
+          <div class="ios-header-left">
+            <div class="ios-icon-badge badge-color">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>
+                <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+                <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+                <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+              </svg>
+            </div>
+            <span class="ios-section-title">カラー設定 (立体・点・軸)</span>
+          </div>
+          <svg class="sub-toggle-icon ios-chevron" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+        <div class="color-accordion-body" id="color-body">
+          <!-- Mesh / Surface Color -->
+          <div class="color-row">
+            <label for="color-surface">立体図形:</label>
+            <div class="color-controls">
+              <input type="color" id="color-surface" value="#0284c7" title="図形の色を選択">
+              <div class="color-swatches" data-target="color-surface">
+                <span class="swatch" style="background:#0284c7" data-color="#0284c7" title="スカイブルー"></span>
+                <span class="swatch" style="background:#10b981" data-color="#10b981" title="エメラルド"></span>
+                <span class="swatch" style="background:#8b5cf6" data-color="#8b5cf6" title="パープル"></span>
+                <span class="swatch" style="background:#f43f5e" data-color="#f43f5e" title="ローズ"></span>
+                <span class="swatch" style="background:#f59e0b" data-color="#f59e0b" title="アンバー"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Points & Line Color -->
+          <div class="color-row">
+            <label>点 &amp; 結線:</label>
+            <div class="color-controls">
+              <input type="color" id="color-point" value="#0284c7" title="点の色">
+              <input type="color" id="color-line" value="#0ea5e9" title="線の色">
+              <div class="color-swatches" data-target="color-point">
+                <span class="swatch" style="background:#0284c7" data-color="#0284c7" title="ブルー"></span>
+                <span class="swatch" style="background:#10b981" data-color="#10b981" title="グリーン"></span>
+                <span class="swatch" style="background:#ec4899" data-color="#ec4899" title="ピンク"></span>
+                <span class="swatch" style="background:#f59e0b" data-color="#f59e0b" title="オレンジ"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- XYZ Axes Colors -->
+          <div class="color-row">
+            <label>XYZ 軸:</label>
+            <div class="color-controls">
+              <input type="color" id="color-axis-x" value="#ef4444" title="X軸カラー">
+              <input type="color" id="color-axis-y" value="#10b981" title="Y軸カラー">
+              <input type="color" id="color-axis-z" value="#2563eb" title="Z軸カラー">
+              <button id="btn-reset-colors" class="btn-reset-sub" title="カラーをデフォルトに戻す">初期化</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- iOS Card Section: Object Rotation (縦・Z軸方向の図形自体の回転) -->
+      <div class="color-accordion collapsed ios-card-section" id="rotation-accordion">
+        <div class="color-accordion-header ios-card-header" id="rotation-toggle">
+          <div class="ios-header-left">
+            <div class="ios-icon-badge badge-rotation">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+            </div>
+            <span class="ios-section-title">図形の回転 (縦・Z軸)</span>
+          </div>
+          <svg class="sub-toggle-icon ios-chevron" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+        <div class="color-accordion-body ios-card-body" id="rotation-body">
+          <div class="ios-setting-row-vertical">
+            <div class="label-row">
+              <label for="rot-z-slider" class="ios-row-label">水平回転 (Z軸)</label>
+              <span id="rot-z-val" class="ios-value-badge">0°</span>
+            </div>
+            <div class="range-slider-row">
+              <input type="range" id="rot-z-slider" min="0" max="360" step="1" value="0">
+            </div>
+          </div>
+
+          <div class="ios-setting-row-vertical">
+            <div class="label-row">
+              <label for="rot-vertical-slider" class="ios-row-label">縦方向回転 (チルト)</label>
+              <span id="rot-vertical-val" class="ios-value-badge">0°</span>
+            </div>
+            <div class="range-slider-row">
+              <input type="range" id="rot-vertical-slider" min="-180" max="180" step="1" value="0">
+            </div>
+          </div>
+
+          <div class="ios-setting-row-vertical">
+            <span class="ios-row-label" style="margin-bottom: 2px;">自転時の回転軸</span>
+            <div class="ios-segmented-control" style="margin-top: 4px;">
+              <button class="pill-btn active ios-segment-btn" data-spin-axis="z" type="button">水平 (Z)</button>
+              <button class="pill-btn ios-segment-btn" data-spin-axis="vertical" type="button">縦 (X)</button>
+              <button class="pill-btn ios-segment-btn" data-spin-axis="both" type="button">3D複合</button>
+            </div>
+          </div>
+
+          <button id="btn-reset-rotation" class="ios-card-action-btn" type="button">図形の回転を初期化</button>
+        </div>
+      </div>
+
+      <!-- iOS Card Section: Mirror Display (XYZ 反転) -->
+      <div class="color-accordion collapsed ios-card-section" id="mirror-accordion">
+        <div class="color-accordion-header ios-card-header" id="mirror-toggle">
+          <div class="ios-header-left">
+            <div class="ios-icon-badge badge-mirror">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="2" x2="12" y2="22" stroke-dasharray="3 3"/>
+                <path d="M8 6l-6 6 6 6M16 6l6 6-6 6"/>
+              </svg>
+            </div>
+            <span class="ios-section-title">ミラー表示 (XYZ反転)</span>
+          </div>
+          <svg class="sub-toggle-icon ios-chevron" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+        <div class="color-accordion-body ios-card-body" id="mirror-body">
+          <div class="ios-card-caption">
+            軸および図形の向きを反転表示します
+          </div>
+          <div class="mirror-btn-group ios-mirror-group">
+            <button id="btn-mirror-x" class="mirror-btn ios-mirror-btn" type="button" title="X軸方向を反転">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="7 16 3 12 7 8"/>
+                <polyline points="17 8 21 12 17 16"/>
+                <line x1="3" y1="12" x2="21" y2="12"/>
+              </svg>
+              <span>X 反転</span>
+            </button>
+            <button id="btn-mirror-y" class="mirror-btn ios-mirror-btn" type="button" title="Y軸方向を反転">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 7 12 3 8 7"/>
+                <polyline points="8 17 12 21 16 17"/>
+                <line x1="12" y1="3" x2="12" y2="21"/>
+              </svg>
+              <span>Y 反転</span>
+            </button>
+            <button id="btn-mirror-z" class="mirror-btn ios-mirror-btn" type="button" title="Z軸方向を反転">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 3 21 3 21 9"/>
+                <polyline points="9 21 3 21 3 15"/>
+                <line x1="21" y1="3" x2="14" y2="10"/>
+                <line x1="3" y1="21" x2="10" y2="14"/>
+              </svg>
+              <span>Z 反転</span>
+            </button>
+          </div>
+          <button id="btn-reset-mirror" class="ios-card-action-btn" type="button">ミラー反転をリセット</button>
+        </div>
+      </div>
+
+      <!-- iOS Card Section: Display & Grid Settings (表示・省電力設定) -->
+      <div class="color-accordion collapsed ios-card-section" id="display-accordion">
+        <div class="color-accordion-header ios-card-header" id="display-toggle">
+          <div class="ios-header-left">
+            <div class="ios-icon-badge badge-display">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="3" y1="9" x2="21" y2="9"/>
+                <line x1="3" y1="15" x2="21" y2="15"/>
+                <line x1="9" y1="3" x2="9" y2="21"/>
+                <line x1="15" y1="3" x2="15" y2="21"/>
+              </svg>
+            </div>
+            <span class="ios-section-title">表示・省電力設定</span>
+          </div>
+          <svg class="sub-toggle-icon ios-chevron" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+        <div class="color-accordion-body ios-card-body" id="display-body">
+          <div class="ios-card-caption">
+            壁紙の描画要素と負荷抑制を切り替えます
+          </div>
+          
+          <div class="display-toggle-row">
+            <span class="ios-row-label">グリッド (床面)</span>
+            <button id="toggle-grid" class="ios-inline-switch active" type="button" aria-label="Toggle Grid">
+              <span class="switch-knob"></span>
+            </button>
+          </div>
+
+          <div class="display-toggle-row">
+            <span class="ios-row-label">XYZ 軸 (矢印・破線)</span>
+            <button id="toggle-axes" class="ios-inline-switch active" type="button" aria-label="Toggle Axes">
+              <span class="switch-knob"></span>
+            </button>
+          </div>
+
+          <div class="display-toggle-row">
+            <span class="ios-row-label">空間パーティクル</span>
+            <button id="toggle-particles" class="ios-inline-switch active" type="button" aria-label="Toggle Particles">
+              <span class="switch-knob"></span>
+            </button>
+          </div>
+
+          <div class="display-toggle-row">
+            <div class="label-with-desc">
+              <span class="ios-row-label">省電力スリープ (Eco)</span>
+              <span class="sub-label-desc">静止時に再描画を停止しGPU負荷を0%に抑制</span>
+            </div>
+            <button id="toggle-eco" class="ios-inline-switch active" type="button" aria-label="Toggle Eco Mode">
+              <span class="switch-knob"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- iOS Card Section: Light Settings (光源設定 & 位置調整) -->
+      <div class="color-accordion collapsed ios-card-section" id="light-accordion">
+        <div class="color-accordion-header ios-card-header" id="light-toggle">
+          <div class="ios-header-left">
+            <div class="ios-icon-badge badge-light">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            </div>
+            <span class="ios-section-title">光源設定 (ライティング)</span>
+          </div>
+          <svg class="sub-toggle-icon ios-chevron" viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+        <div class="color-accordion-body ios-card-body" id="light-body">
+          <!-- Toggle: Enable/Disable Custom Light Position -->
+          <div class="display-toggle-row">
+            <div class="label-with-desc">
+              <span class="ios-row-label">光源の位置を調整する</span>
+              <span class="sub-label-desc">有効にすると3D空間に光源マーカーを表示し位置を移動可能</span>
+            </div>
+            <button id="toggle-custom-light" class="ios-inline-switch" type="button" aria-label="Toggle Custom Light Position">
+              <span class="switch-knob"></span>
+            </button>
+          </div>
+
+          <!-- Light Controls (Sliders & Options) -->
+          <div id="light-controls-container" class="light-controls-disabled">
+            <!-- Position Sliders -->
+            <div class="ios-setting-row-vertical" style="margin-top: 6px;">
+              <div class="label-row">
+                <label for="light-x-slider" class="ios-row-label">X 座標 (左右)</label>
+                <span id="light-x-val" class="ios-value-badge">15.0</span>
+              </div>
+              <div class="range-slider-row">
+                <input type="range" id="light-x-slider" min="-40" max="40" step="0.5" value="15">
+              </div>
+            </div>
+
+            <div class="ios-setting-row-vertical">
+              <div class="label-row">
+                <label for="light-y-slider" class="ios-row-label">Y 座標 (前後)</label>
+                <span id="light-y-val" class="ios-value-badge">20.0</span>
+              </div>
+              <div class="range-slider-row">
+                <input type="range" id="light-y-slider" min="-40" max="40" step="0.5" value="20">
+              </div>
+            </div>
+
+            <div class="ios-setting-row-vertical">
+              <div class="label-row">
+                <label for="light-z-slider" class="ios-row-label">Z 座標 (高さ)</label>
+                <span id="light-z-val" class="ios-value-badge">25.0</span>
+              </div>
+              <div class="range-slider-row">
+                <input type="range" id="light-z-slider" min="-20" max="50" step="0.5" value="25">
+              </div>
+            </div>
+
+            <!-- Intensity & Color -->
+            <div class="ios-setting-row-vertical">
+              <div class="label-row">
+                <label for="light-intensity-slider" class="ios-row-label">光の強さ</label>
+                <span id="light-intensity-val" class="ios-value-badge">0.70</span>
+              </div>
+              <div class="range-slider-row">
+                <input type="range" id="light-intensity-slider" min="0.1" max="2.0" step="0.05" value="0.7">
+              </div>
+            </div>
+
+            <div class="color-row" style="margin-top: 6px;">
+              <label for="light-color-picker">光の色:</label>
+              <div class="color-controls">
+                <input type="color" id="light-color-picker" value="#38bdf8" title="光源の色">
+                <div class="color-swatches" data-target="light-color-picker">
+                  <span class="swatch" style="background:#ffffff" data-color="#ffffff" title="白"></span>
+                  <span class="swatch" style="background:#38bdf8" data-color="#38bdf8" title="シアン"></span>
+                  <span class="swatch" style="background:#fbbf24" data-color="#fbbf24" title="ウォームゴールド"></span>
+                  <span class="swatch" style="background:#f43f5e" data-color="#f43f5e" title="ローズ"></span>
+                  <span class="swatch" style="background:#a855f7" data-color="#a855f7" title="パープル"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Position Presets (2x2 Grid) -->
+            <div class="ios-setting-row-vertical" style="margin-top: 6px;">
+              <span class="ios-row-label" style="margin-bottom: 4px;">プリセット位置</span>
+              <div class="light-preset-grid">
+                <button class="pill-btn light-preset-btn active" data-light-preset="top-right" type="button">右上 (標準)</button>
+                <button class="pill-btn light-preset-btn" data-light-preset="front-top" type="button">正面斜め</button>
+                <button class="pill-btn light-preset-btn" data-light-preset="overhead" type="button">真上天頂</button>
+                <button class="pill-btn light-preset-btn" data-light-preset="side-low" type="button">サイド低角</button>
+              </div>
+            </div>
+
+            <button id="btn-reset-light" class="ios-card-action-btn" type="button">光源の位置・明るさを初期化</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top-Right: Theme & Hide UI Controls (iOS Styled) -->
+  <div id="top-right-panel">
+    <button id="btn-toggle-theme" class="ios-switch" aria-label="Toggle theme" title="ライト / ダークモード切り替え (Tキー)">
+      <div class="ios-switch-track">
+        <span class="ios-icon ios-icon-sun">
+          <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4.5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </span>
+        <span class="ios-icon ios-icon-moon">
+          <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </span>
+        <div class="ios-switch-thumb"></div>
+      </div>
+    </button>
+    <button id="btn-toggle-ui" class="ios-icon-btn" title="UIの表示/非表示 (ショートカット: Hキー)">
+      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Bottom-Left: Axes Legend (Compact & Minimal: Color box & letter only) -->
+  <div id="axes-legend" class="glass-panel">
+    <div class="axis-item axis-x">
+      <span class="axis-badge">■</span>
+      <span class="axis-name">X</span>
+    </div>
+    <div class="axis-item axis-y">
+      <span class="axis-badge">■</span>
+      <span class="axis-name">Y</span>
+    </div>
+    <div class="axis-item axis-z">
+      <span class="axis-badge">■</span>
+      <span class="axis-name">Z</span>
+    </div>
+    <button id="btn-legend-center" class="legend-center-btn" title="原点を画面中心に戻す" aria-label="Center origin">
+      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="2" x2="12" y2="6"></line>
+        <line x1="12" y1="18" x2="12" y2="22"></line>
+        <line x1="2" y1="12" x2="6" y2="12"></line>
+        <line x1="18" y1="12" x2="22" y2="12"></line>
+        <circle cx="12" cy="12" r="2.5"></circle>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Bottom-Center: Interactive Info & Coordinates -->
+  <div id="bottom-center-info" class="glass-panel">
+    <span class="coord-display" id="coord-readout">X: 0.00, Y: 0.00, Z: 0.00</span>
+    <span class="hint-text" id="mode-hint">左ドラッグで視点を自由に回転</span>
+  </div>
+
+  <!-- Bottom-Right: Main Controls (iOS Style Segmented Control & Actions) -->
+  <div id="bottom-right-panel" class="glass-panel">
+    <!-- iOS Segmented Control for Interaction Mode -->
+    <div class="ios-segmented-control" role="tablist">
+      <button id="btn-mode-rotate" class="ios-segment-btn active" role="tab" aria-selected="true" title="視点回転モード (左ドラッグで回転)">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+        </svg>
+        <span>視点回転</span>
+      </button>
+      <button id="btn-mode-pan" class="ios-segment-btn" role="tab" aria-selected="false" title="視点移動モード (左ドラッグで原点・画面を移動)">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="5 9 2 12 5 15"></polyline>
+          <polyline points="9 5 12 2 15 5"></polyline>
+          <polyline points="15 19 12 22 9 19"></polyline>
+          <polyline points="19 9 22 12 19 15"></polyline>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <line x1="12" y1="2" x2="12" y2="22"></line>
+        </svg>
+        <span>視点移動</span>
+      </button>
+      <button id="btn-mode-draw" class="ios-segment-btn" role="tab" aria-selected="false" title="点打ち・結線モード (クリックで点配置)">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"/>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        <span>点打ち・結線</span>
+      </button>
+    </div>
+
+    <!-- iOS Style Action Buttons -->
+    <div class="ios-action-row">
+      <button id="btn-undo-point" class="ios-action-btn" title="直前に打った点を取り消します (Undo)">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+        <span>取消</span>
+      </button>
+      <button id="btn-clear-points" class="ios-action-btn" title="打った点を全て消去します">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        <span>全消去</span>
+      </button>
+      <button id="btn-loop-points" class="ios-action-btn" title="始点と終点を結んでループを閉じます (ON/OFF)">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/>
+        </svg>
+        <span class="loop-label">ループ</span>
+      </button>
+      <button id="btn-center-origin" class="ios-action-btn" title="原点を画面の中心に戻します">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="2" x2="12" y2="6"></line>
+          <line x1="12" y1="18" x2="12" y2="22"></line>
+          <line x1="2" y1="12" x2="6" y2="12"></line>
+          <line x1="18" y1="12" x2="22" y2="12"></line>
+          <circle cx="12" cy="12" r="2.5"></circle>
+        </svg>
+        <span>原点を中央へ</span>
+      </button>
+      <button id="btn-reset-view" class="ios-action-btn" title="視点を初期位置に戻します">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+        <span>視点初期化</span>
+      </button>
+      <button id="btn-auto-spin" class="ios-action-btn" title="壁紙鑑賞用に立体をゆっくり自転させます">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          <path d="M2 12h20"></path>
+        </svg>
+        <span class="spin-label">自転</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Application Script -->
+  <script src="js/main.js"></script>
+</body>
+</html>
